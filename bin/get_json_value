@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 """simplistic and naive and not fancy json query syntax.
 
-It gets the job done and it is very short
+It gets the job done and it is very short.
+
+Usage get_json_value path/to/file.json object.path.for.nested.property
+
+Digs out the dot-delimited nested value and writes it to standard output
 
 """
 import json

@@ -1,8 +1,8 @@
 #!/bin/bash
-for binary in "$@"; do
-  binary_path=$(which "${binary}" 2>/dev/null)
-  if [[ ! -x "${binary_path}" ]]; then
-    errors="${errors}\nplease install ${binary}"
+for exe in "$@"; do
+  exe_path=$(which "${exe}" 2>/dev/null)
+  if [[ ! -x "${exe_path}" ]]; then
+    errors="${errors}\nplease install ${exe}"
   fi
 done
 if [[ -n "${errors}" ]]; then
