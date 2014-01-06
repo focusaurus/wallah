@@ -1,8 +1,12 @@
 #!/bin/bash
+
+#sigh. http://mywiki.wooledge.org/BashFAQ/028
+wallah_bin=$(cd "$(dirname $0)" && pwd -P)
+
 case "$#" in
   1)
     #default python root, only requirements path provided
-    python_root=$(dirname "$0/../../python")
+    python_root="${wallah_bin}/../../python"
     package_name="$1"
   ;;
   2)
@@ -11,17 +15,19 @@ case "$#" in
     package_name="$2"
   ;;
   *)
-    echo "Usage: $(basename $0) <python_root> <package_name>" 1>&2
+    echo "Usage: $(basename $0) [python_root] <package_name>" 1>&2
     exit 1
   ;;
 esac
 
 #pip packages depend on python, so execute the python install script
-"$(dirname $0)/install_python" "${python_root}"
+"${wallah_bin}/clone_python" "${python_root}"
 
-if [[ -x "${python_root}/lib/"python-*"/site-packages/${package_name}" ]]; then
+if "${python_root}/bin/python" -c "import ${package_name}" 2>/dev/null; then
   #all good
   exit 0
 fi
 
-exec "${python_root}/bin/pip" install "${package_name}"
+echo "pip package ${package_name} not installed. Installing..."
+"${python_root}/bin/pip" install "${package_name}"
+"${python_root}/bin/python" "${python_root}/virtualenv/virtualenv.py" --relocatable "${python_root}"

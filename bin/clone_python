@@ -1,6 +1,7 @@
 #!/bin/bash
 
 clone_python() {
+  echo "python not installed in directory $(pwd -P), creating a virtualenv clone..."
   local virtualenv_version="1.10.1"
   local archive="virtualenv-${virtualenv_version}.tar.gz"
   curl --silent \
@@ -12,7 +13,8 @@ clone_python() {
 }
 
 #sigh. http://mywiki.wooledge.org/BashFAQ/028
-wallah_bin="$(dirname $0)"
+wallah_bin=$(cd "$(dirname $0)" && pwd -P)
+
 python_root="$1"
 if [[ -z "${python_root}" ]]; then
   python_root="${wallah_bin}/../../python"
@@ -26,7 +28,6 @@ fi
 if ! "${wallah_bin}/check_prerequisites" curl tar python; then
   exit 2
 fi
+
 mkdir -p "${python_root}"
-cd "${python_root}"
-echo "python not installed in directory $(pwd -P), creating a virtualenv clone..."
-clone_python
+(cd "${python_root}" && clone_python)

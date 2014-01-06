@@ -1,6 +1,21 @@
 #!/bin/bash
+
+get_node_version_from_package_json() {
+  if [[ ! -f "../package.json" ]]; then
+    return
+  fi
+  echo $("${wallah_bin}/get_json_value" "../package.json" "engines.node") 2>/dev/null
+}
+
 install_node() {
-  local version="${1-0.10.24}"
+  local version="$1"
+  if [[ -z "${version}" ]]; then
+    version="$(get_node_version_from_package_json)"
+  fi
+  if [[ -z "${version}" ]]; then
+    version="0.10.24"
+  fi
+  echo "node.js not installed in directory $(pwd -P), installing v${version}..."
   local platform="$(uname | tr A-Z a-z)"
   local cpu=x64
   if [[ "$(uname -p)" = "i686" ]]; then
@@ -10,10 +25,14 @@ install_node() {
   curl --silent \
     "http://nodejs.org/dist/v${version}/${archive}" \
     | tar --strip-components=1 --extract --gzip --file -
+  if [[ -f "../package.json" ]]; then
+    ./bin/npm install
+  fi
 }
 
 #sigh. http://mywiki.wooledge.org/BashFAQ/028
-wallah_bin="$(dirname $0)"
+wallah_bin=$(cd "$(dirname $0)" && pwd -P)
+
 node_root="$1"
 if [[ -z "${node_root}" ]]; then
   node_root="${wallah_bin}/../../node"
@@ -28,7 +47,6 @@ fi
 if ! "${wallah_bin}/check_prerequisites" curl tar; then
   exit 2
 fi
+
 mkdir -p "${node_root}"
-cd "${node_root}"
-echo "node.js not installed in directory $(pwd -P), installing..."
-install_node "$@"
+(cd "${node_root}" && install_node "$@")
