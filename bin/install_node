@@ -1,0 +1,33 @@
+#!/bin/bash
+install_node() {
+  local prefix=${1-node}
+  local version=${2-0.10.24}
+  local platform=$(uname | tr A-Z a-z)
+  local cpu=x64
+  if [[ "$(uname -p)" = "i686" ]]; then
+    cpu=x86
+  fi
+  local archive="node-v${version}-${platform}-${cpu}.tar.gz"
+  mkdir -p "${prefix}"
+  curl --silent \
+    "http://nodejs.org/dist/v${version}/${archive}" \
+    | tar --extract --gzip --file - --strip-components=1 --directory "${prefix}"
+}
+
+node_root="${1}"
+if [[ -z "${node_root}" ]]; then
+  node_root=$(dirname "$0")/../../node
+fi
+shift
+
+if [[ -x "${node_root}/bin/node" ]]; then
+  #all good
+  exit 0
+fi
+
+if ! "$(dirname $0)/check_prerequisites" curl tar; then
+  exit 2
+fi
+
+echo "node not installed in directory ${node_root}, installing..."
+install_node "${node_root}" "${@}"

@@ -1,0 +1,27 @@
+#!/bin/bash
+case "$#" in
+  1)
+    #default python root, only requirements path provided
+    python_root=$(dirname "$0/../../python")
+    package_name="$1"
+  ;;
+  2)
+    #python root and requirements path both specified
+    python_root="$1"
+    package_name="$2"
+  ;;
+  *)
+    echo "Usage: $(basename $0) <python_root> <package_name>" 1>&2
+    exit 1
+  ;;
+esac
+
+#pip packages depend on python, so execute the python install script
+"$(dirname $0)/install_python" "${python_root}"
+
+if [[ -x "${python_root}/lib/"python-*"/site-packages/${package_name}" ]]; then
+  #all good
+  exit 0
+fi
+
+exec "${python_root}/bin/pip" install "${package_name}"

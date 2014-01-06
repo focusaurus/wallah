@@ -1,0 +1,11 @@
+#!/bin/bash
+for binary in "$@"; do
+  binary_path=$(which "${binary}" 2>/dev/null)
+  if [[ ! -x "${binary_path}" ]]; then
+    errors="${errors}\nplease install ${binary}"
+  fi
+done
+if [[ -n "${errors}" ]]; then
+  printf "ERROR: prerequisites missing!${errors}\n" 1>&2
+  exit 2
+fi
