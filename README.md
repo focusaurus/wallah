@@ -1,8 +1,8 @@
-#wallah helps you install your project's prerequisites
+#wallah: get what you need
 
-This project is designed to be added as a git submodule to a parent project. It provides several scripts that help bootstrap you project's prerequisites so getting a new developer up and running is mostly automated.
+wallah helps you install your project's prerequisites. It is designed to be added as a git submodule to a parent project. It provides several scripts that help bootstrap you project's prerequisites so getting a new developer up and running is mostly automated.
 
-[!wallah.jpg]
+![Spice Wallah](wallah.jpg "wallah")
 
 [Photo by Meena Kadri](http://www.flickr.com/photos/meanestindian/4127563975/). Copyright. Licensed [Create Commons Attribution-NonCommercial-NoDerivs 2.0 Generic](http://creativecommons.org/licenses/by-nc-nd/2.0/)
 
