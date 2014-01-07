@@ -1,4 +1,12 @@
 #!/bin/bash
+#
+# Usage: ./wallah/bin/check_prerequisites <command1> [command2...]
+#
+# Takes a list of command names (for example: tar, curl, git, etc) and
+# makes sure they are available as executables in the PATH. This is done with
+# the shell "which" builtin.
+#
+# If any command is not found, the script will exit with a nonzero exit code.
 for exe in "$@"; do
   exe_path=$(which "${exe}" 2>/dev/null)
   if [[ ! -x "${exe_path}" ]]; then

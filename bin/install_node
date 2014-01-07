@@ -1,4 +1,21 @@
 #!/bin/bash
+#
+# Usage is `./wallah/bin/install_node [target_directory] [version]`
+#
+# If target directory is not provided, it will default to a directory called
+# "node" in the current directory.
+#
+# The version installed is determined with this chain of fallbacks/default:
+# * the version provided on the command line
+# * the version found in node_root/../package.json in the 'engines.node' key
+# * the latest version scraped from the nodejs.org home page HTML :-)
+# * a hard-coded fallback to a recent version I try to keep up to date
+#   on a best-effort basis
+#
+# Note that node.js only began shipping pre-built distributions as of v0.8,
+# so we only support installing that version or newer.
+
+readonly DEFAULT_NODE_VERSION="0.10.24"
 
 get_node_version_from_package_json() {
   if [[ ! -f "../package.json" ]]; then
@@ -7,13 +24,24 @@ get_node_version_from_package_json() {
   echo $("${wallah_bin}/get_json_value" "../package.json" "engines.node") 2>/dev/null
 }
 
+get_latest_node_version() {
+  # Awesomely fragile way to figure out the latest version of node.
+  # scrape the <p>Current Version: v0.10.24</p> HTML from the home page
+  curl --silent 'http://nodejs.org' \
+    | grep "Current Version: v" \
+    | tr -d -C 0123456789.
+}
+
 install_node() {
   local version="$1"
   if [[ -z "${version}" ]]; then
     version="$(get_node_version_from_package_json)"
   fi
   if [[ -z "${version}" ]]; then
-    version="0.10.24"
+    version="$(get_latest_node_version)"
+  fi
+  if [[ -z "${version}" ]]; then
+    version="${DEFAULT_NODE_VERSION}"
   fi
   echo "node.js not installed in directory $(pwd -P), installing v${version}..."
   local platform="$(uname | tr A-Z a-z)"
@@ -25,28 +53,29 @@ install_node() {
   curl --silent \
     "http://nodejs.org/dist/v${version}/${archive}" \
     | tar --strip-components=1 --extract --gzip --file -
-  if [[ -f "../package.json" ]]; then
-    ./bin/npm install
-  fi
 }
 
-#sigh. http://mywiki.wooledge.org/BashFAQ/028
-wallah_bin=$(cd "$(dirname $0)" && pwd -P)
+main() {
+  #sigh. http://mywiki.wooledge.org/BashFAQ/028
+  wallah_bin=$(cd "$(dirname $0)" && pwd)
 
-node_root="$1"
-if [[ -z "${node_root}" ]]; then
-  node_root="${wallah_bin}/../../node"
-fi
-shift
+  local node_root="$1"
+  if [[ -z "${node_root}" ]]; then
+    node_root="${wallah_bin}/../../node"
+  fi
+  shift
 
-if [[ -x "${node_root}/bin/node" ]]; then
-  #all good
-  exit 0
-fi
+  if [[ -x "${node_root}/bin/node" ]]; then
+    #all good
+    exit 0
+  fi
 
-if ! "${wallah_bin}/check_prerequisites" curl tar; then
-  exit 2
-fi
+  if ! "${wallah_bin}/check_prerequisites" curl tar; then
+    exit 2
+  fi
 
-mkdir -p "${node_root}"
-(cd "${node_root}" && install_node "$@")
+  mkdir -p "${node_root}"
+  (cd "${node_root}" && install_node "$@")
+}
+
+main "$@"

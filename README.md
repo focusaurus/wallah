@@ -1,6 +1,10 @@
-#wallah: Helps you install your project's prerequisites
+#wallah helps you install your project's prerequisites
 
 This project is designed to be added as a git submodule to a parent project. It provides several scripts that help bootstrap you project's prerequisites so getting a new developer up and running is mostly automated.
+
+[!wallah.jpg]
+
+[Photo by Meena Kadri](http://www.flickr.com/photos/meanestindian/4127563975/). Copyright. Licensed [Create Commons Attribution-NonCommercial-NoDerivs 2.0 Generic](http://creativecommons.org/licenses/by-nc-nd/2.0/)
 
 #Philosophy
 
@@ -8,22 +12,24 @@ Applications and projects in general tend to be tightly coupled to particular ve
 
 wallah is strongly opposed to `npm -g`, `sudo pip install`, `sudo apt-get install nodejs`, `brew install python` and any similar command that shares runtimes or dependencies across applications/projects.
 
-#Filesystem Default Conventions
+wallah uses simplistic checks to avoid re-installing things that are already present. It is optimized for the normal cases of new developer setup where things need to be installed from scratch as well as the case where things are already completely and correctly installed. Thus it simply checks for the existance of particular sentinel files, and if they are there it assumes that thing is installed completely and exits zero silently. Thus your wrapper scripts can call wallah scripts every time and once things are installed there will be near-zero cost to running them.
 
-wallah will do the right thing automatically if your project follows certain conventions.
+#Usage and documentation of each script
 
-* `<project_root>/wallah` is a git submodule in your project
-* note making `<project_root>/wallah` a symlink to somewhere else does NOT work. Don't do that.
+Docs are in the script files themselves. Read them.
 
-##node.js
-* node will be installed in `<project_root>/node`
-* your npm config lives at `<project_root>/package.json`
+#Adding wallah as a submodule to your project
+
+* `cd project_root`
+* `git submodule add https://github.com/focusaurus/wallah.git`
 
 #Prerequisites
 
 * OSX, Linux, or maybe other posix system
 * bash
 * tar
+* grep
+* tr
 * curl
   * At some point we could probably use python standard libraries instead of both curl and tar, but for the time being it's more robust and straightforward to use external executables
 * python

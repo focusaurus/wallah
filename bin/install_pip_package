@@ -1,7 +1,11 @@
 #!/bin/bash
+#
+# Usage: ./wallah/bin/install_pip_package [python_root] <packagename>
+#
+# Installs python packages via pip if not already installed.
 
 #sigh. http://mywiki.wooledge.org/BashFAQ/028
-wallah_bin=$(cd "$(dirname $0)" && pwd -P)
+wallah_bin=$(cd "$(dirname $0)" && pwd)
 
 case "$#" in
   1)
