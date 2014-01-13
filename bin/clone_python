@@ -30,22 +30,26 @@ clone_python() {
   python ./virtualenv/virtualenv.py --relocatable .
 }
 
-#sigh. http://mywiki.wooledge.org/BashFAQ/028
-wallah_bin=$(cd "$(dirname $0)" && pwd)
+main() {
+  #sigh. http://mywiki.wooledge.org/BashFAQ/028
+  wallah_bin=$(cd $(dirname "$0") && pwd)
 
-python_root="$1"
-if [[ -z "${python_root}" ]]; then
-  python_root="${wallah_bin}/../../python"
-fi
+  python_root="$1"
+  if [[ -z "${python_root}" ]]; then
+    python_root="${wallah_bin}/../../python"
+  fi
 
-if [[ -x "${python_root}/bin/python" ]]; then
-  #all good
-  exit 0
-fi
+  if [[ -x "${python_root}/bin/python" ]]; then
+    #all good
+    exit 0
+  fi
 
-if ! "${wallah_bin}/check_prerequisites" curl tar python; then
-  exit 2
-fi
+  if ! "${wallah_bin}/check_prerequisites" curl tar python; then
+    exit 2
+  fi
 
-mkdir -p "${python_root}"
-(cd "${python_root}" && clone_python)
+  mkdir -p "${python_root}"
+  (cd "${python_root}" && clone_python)
+}
+
+main "$@"

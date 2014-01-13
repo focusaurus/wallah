@@ -16,5 +16,8 @@ settings = json.load(open(sys.argv[1]))
 properties = sys.argv[2].split(".")
 properties.reverse()
 while properties:
-    settings = settings[properties.pop()]
+    try:
+        settings = settings[properties.pop()]
+    except KeyError:
+        sys.exit()
 print(settings)

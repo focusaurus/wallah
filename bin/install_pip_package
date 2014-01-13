@@ -5,7 +5,7 @@
 # Installs python packages via pip if not already installed.
 
 #sigh. http://mywiki.wooledge.org/BashFAQ/028
-wallah_bin=$(cd "$(dirname $0)" && pwd)
+wallah_bin=$(cd $(dirname "$0") && pwd)
 
 case "$#" in
   1)
@@ -34,4 +34,5 @@ fi
 
 echo "pip package ${package_name} not installed. Installing..."
 "${python_root}/bin/pip" install "${package_name}"
-"${python_root}/bin/python" "${python_root}/virtualenv/virtualenv.py" --relocatable "${python_root}"
+"${python_root}/bin/python" "${python_root}/virtualenv/virtualenv.py" \
+  --relocatable "${python_root}"

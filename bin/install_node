@@ -57,7 +57,7 @@ install_node() {
 
 main() {
   #sigh. http://mywiki.wooledge.org/BashFAQ/028
-  wallah_bin=$(cd "$(dirname $0)" && pwd)
+  wallah_bin=$(cd $(dirname "$0") && pwd)
 
   local node_root="$1"
   if [[ -z "${node_root}" ]]; then
