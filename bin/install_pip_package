@@ -27,12 +27,13 @@ esac
 #pip packages depend on python, so execute the python install script
 "${wallah_bin}/clone_python" "${python_root}"
 
-if "${python_root}/bin/python" -c "import ${package_name}" 2>/dev/null; then
+name_no_version=$(echo "${package_name}" | cut -d '=' -f 1)
+if "${python_root}/bin/python" -c "import ${name_no_version}" 2>/dev/null; then
   #all good
   exit 0
 fi
 
-echo "pip package ${package_name} not installed. Installing..."
+echo "pip package ${name_no_version} not installed. Installing..."
 "${python_root}/bin/pip" install "${package_name}"
 "${python_root}/bin/python" "${python_root}/virtualenv/virtualenv.py" \
   --relocatable "${python_root}"
