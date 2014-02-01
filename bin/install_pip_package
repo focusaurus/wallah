@@ -34,6 +34,6 @@ if "${python_root}/bin/python" -c "import ${name_no_version}" 2>/dev/null; then
 fi
 
 echo "pip package ${name_no_version} not installed. Installing..."
-"${python_root}/bin/pip" install "${package_name}"
+PATH="${python_root}/bin:${PATH}" "${python_root}/bin/pip" install "${package_name}"
 "${python_root}/bin/python" "${python_root}/virtualenv/virtualenv.py" \
   --relocatable "${python_root}"
