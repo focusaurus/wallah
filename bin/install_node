@@ -15,7 +15,7 @@
 # Note that node.js only began shipping pre-built distributions as of v0.8,
 # so we only support installing that version or newer.
 
-readonly DEFAULT_NODE_VERSION="0.10.24"
+readonly DEFAULT_NODE_VERSION="0.10.26"
 
 get_node_version_from_package_json() {
   if [[ ! -f "../package.json" ]]; then
