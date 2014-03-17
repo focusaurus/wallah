@@ -14,6 +14,8 @@
 #
 # Note that node.js only began shipping pre-built distributions as of v0.8,
 # so we only support installing that version or newer.
+#
+# Downloads will be cached in $HOME/.wallah/cache
 
 readonly DEFAULT_NODE_VERSION="0.10.26"
 
@@ -50,9 +52,15 @@ install_node() {
     cpu=x86
   fi
   local archive="node-v${version}-${platform}-${cpu}.tar.gz"
-  curl --silent \
-    "http://nodejs.org/dist/v${version}/${archive}" \
-    | tar --strip-components=1 --extract --gzip --file -
+  local cache_dir="${HOME}/.wallah/cache"
+  local cached_archive="${cache_dir}/${archive}"
+
+  if [[ ! -f "${cached_archive}" ]]; then
+    mkdir -p "${cache_dir}"
+    curl --silent --output "${cached_archive}" \
+      "http://nodejs.org/dist/v${version}/${archive}"
+  fi
+  tar --strip-components=1 --extract --gzip --file "${cached_archive}"
 }
 
 main() {
