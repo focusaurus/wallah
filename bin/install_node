@@ -19,11 +19,16 @@
 
 readonly DEFAULT_NODE_VERSION="0.10.26"
 
+#Delete any characters other than letters and dots
+num_dot () {
+  tr -d -C 0123456789.
+}
+
 get_node_version_from_package_json() {
   if [[ ! -f "../package.json" ]]; then
     return
   fi
-  echo $("${wallah_bin}/get_json_value" "../package.json" "engines.node") 2>/dev/null
+  echo $("${wallah_bin}/get_json_value" "../package.json" "engines.node") | num_dot 2>/dev/null
 }
 
 get_latest_node_version() {
@@ -31,7 +36,7 @@ get_latest_node_version() {
   # scrape the <p>Current Version: v0.10.24</p> HTML from the home page
   curl --silent 'http://nodejs.org' \
     | grep "Current Version: v" \
-    | tr -d -C 0123456789.
+    | num_dot
 }
 
 install_node() {
