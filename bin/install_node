@@ -39,8 +39,53 @@ get_latest_node_version() {
     | num_dot
 }
 
-install_node() {
-  local version="$1"
+main() {
+  #sigh. http://mywiki.wooledge.org/BashFAQ/028
+  wallah_bin=$(cd $(dirname "$0") && pwd)
+
+  ##### parse command line arguments #####
+  local cpu
+  local node_root
+  local platform
+  local version
+  for arg in $@; do
+    if [[ "${arg}" =~ ^(x64|x86) ]]; then
+      cpu="${arg}"
+      continue;
+    fi
+    if [[ "${arg}" =~ ^(linux|darwin|sunos)$ ]]; then
+      platform="${arg}"
+      continue;
+    fi
+    # I am aware this semver regex is imperfect
+    if [[ "${arg}" =~ ^v?([0-9]+\.){2}[0-9]+ ]]; then
+      version=$(echo ${arg} | tr -d v)
+      continue;
+    fi
+
+    # If the arg doesn't look like anything else, assume first one
+    # is the node_root
+    if [[ -z "${node_root}" ]]; then
+      node_root="${arg}"
+    fi
+  done
+
+  ##### Compute default values as necessary #####
+  if [[ -z "${cpu}" ]]; then
+    cpu=x64
+    if [[ "$(uname -p)" = "i686" ]]; then
+      cpu=x86
+    fi
+  fi
+
+  if [[ -z "${node_root}" ]]; then
+    node_root="${wallah_bin}/../../node"
+  fi
+
+  if [[ -z "${platform}" ]]; then
+    platform="$(uname | tr A-Z a-z)"
+  fi
+
   if [[ -z "${version}" ]]; then
     version="$(get_node_version_from_package_json)"
   fi
@@ -50,12 +95,23 @@ install_node() {
   if [[ -z "${version}" ]]; then
     version="${DEFAULT_NODE_VERSION}"
   fi
-  echo "node.js not installed in directory $(pwd -P), installing v${version}..."
-  local platform="$(uname | tr A-Z a-z)"
-  local cpu=x64
-  if [[ "$(uname -p)" = "i686" ]]; then
-    cpu=x86
+
+  #Short circuit ASAP and bail if no work to do
+  if [[ -x "${node_root}/bin/node" ]]; then
+    #all good
+    exit 0
   fi
+
+  #OK, we need to actually install node
+  if ! "${wallah_bin}/check_prerequisites" curl tar; then
+    exit 2
+  fi
+
+  echo -n "node.js not installed in directory ${node_root}, "
+  echo "installing v${version}..."
+  mkdir -p "${node_root}"
+  cd "${node_root}"
+
   local archive="node-v${version}-${platform}-${cpu}.tar.gz"
   local cache_dir="${HOME}/.wallah/cache"
   local cached_archive="${cache_dir}/${archive}"
@@ -66,29 +122,6 @@ install_node() {
       "http://nodejs.org/dist/v${version}/${archive}"
   fi
   tar --strip-components=1 --extract --gzip --file "${cached_archive}"
-}
-
-main() {
-  #sigh. http://mywiki.wooledge.org/BashFAQ/028
-  wallah_bin=$(cd $(dirname "$0") && pwd)
-
-  local node_root="$1"
-  if [[ -z "${node_root}" ]]; then
-    node_root="${wallah_bin}/../../node"
-  fi
-  shift
-
-  if [[ -x "${node_root}/bin/node" ]]; then
-    #all good
-    exit 0
-  fi
-
-  if ! "${wallah_bin}/check_prerequisites" curl tar; then
-    exit 2
-  fi
-
-  mkdir -p "${node_root}"
-  (cd "${node_root}" && install_node "$@")
 }
 
 main "$@"
