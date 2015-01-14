@@ -37,8 +37,9 @@ Docs are in the script files themselves. Read them.
 
 #Supported Languages
 
-* python with pip
 * node.js with npm
+* io.js with npm
+* python with pip
 
 #Code Conventions
 

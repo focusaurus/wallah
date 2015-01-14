@@ -61,7 +61,6 @@ main() {
   local archive="iojs-v${wallah_node_version}-${wallah_node_platform}-${wallah_node_cpu}.tar.gz"
   local cached_archive=$(wallah::download \
     "https://iojs.org/dist/v${wallah_node_version}/${archive}" "${archive}")
-  set -x
   tar --strip-components=1 --extract --gzip --file "${cached_archive}"
 }
 

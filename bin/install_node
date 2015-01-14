@@ -17,87 +17,31 @@
 #
 # Downloads will be cached in $HOME/.wallah/cache
 
-readonly DEFAULT_NODE_VERSION="0.10.35"
-
-#Delete any characters other than letters and dots
-num_dot () {
-  tr -d -C 0123456789.
-}
-
-get_node_version_from_package_json() {
-  if [[ ! -f "../package.json" ]]; then
-    return
-  fi
-  echo $("${wallah_bin}/get_json_value" "../package.json" "engines.node") | num_dot 2>/dev/null
-}
+readonly DEFAULT_NODE_VERSION="0.10.33"
 
 get_latest_node_version() {
   # Awesomely fragile way to figure out the latest version of node.
   # scrape the <p>Current Version: v0.10.24</p> HTML from the home page
   curl --silent 'http://nodejs.org' \
     | grep "Current Version: v" \
-    | num_dot
+    | wallah::num_dot
 }
 
 main() {
   #sigh. http://mywiki.wooledge.org/BashFAQ/028
   wallah_bin=$(cd $(dirname "$0") && pwd)
-
-  ##### parse command line arguments #####
-  local cpu
-  local node_root
-  local platform
-  local version
-  for arg in $@; do
-    if [[ "${arg}" =~ ^(x64|x86) ]]; then
-      cpu="${arg}"
-      continue;
-    fi
-    if [[ "${arg}" =~ ^(linux|darwin|sunos)$ ]]; then
-      platform="${arg}"
-      continue;
-    fi
-    # I am aware this semver regex is imperfect
-    if [[ "${arg}" =~ ^v?([0-9]+\.){2}[0-9]+ ]]; then
-      version=$(echo ${arg} | tr -d v)
-      continue;
-    fi
-
-    # If the arg doesn't look like anything else, assume first one
-    # is the node_root
-    if [[ -z "${node_root}" ]]; then
-      node_root="${arg}"
-    fi
-  done
-
-  ##### Compute default values as necessary #####
-  if [[ -z "${cpu}" ]]; then
-    cpu=x64
-    if [[ "$(uname -p)" = "i686" ]]; then
-      cpu=x86
-    fi
+  source "${wallah_bin}/../wallah.sh"
+  wallah::parse_node_args "$@"
+  if [[ -z "${wallah_node_version}" ]]; then
+    wallah_node_version="$(get_latest_node_version)"
+  fi
+  if [[ -z "${wallah_node_version}" ]]; then
+    wallah_node_version="${DEFAULT_NODE_VERSION}"
   fi
 
-  if [[ -z "${node_root}" ]]; then
-    node_root="${wallah_bin}/../../node"
-  fi
-
-  if [[ -z "${platform}" ]]; then
-    platform="$(uname | tr A-Z a-z)"
-  fi
-
-  if [[ -z "${version}" ]]; then
-    version="$(get_node_version_from_package_json)"
-  fi
-  if [[ -z "${version}" ]]; then
-    version="$(get_latest_node_version)"
-  fi
-  if [[ -z "${version}" ]]; then
-    version="${DEFAULT_NODE_VERSION}"
-  fi
 
   #Short circuit ASAP and bail if no work to do
-  if [[ -x "${node_root}/bin/node" ]]; then
+  if [[ -x "${wallah_node_root}/bin/node" ]]; then
     #all good
     exit 0
   fi
@@ -107,20 +51,15 @@ main() {
     exit 2
   fi
 
-  echo -n "node.js not installed in directory ${node_root}, "
-  echo "installing v${version}..."
-  mkdir -p "${node_root}"
-  cd "${node_root}"
+  echo -n "node.js not installed in directory ${wallah_node_root}, "
+  echo "installing v${wallah_node_version}..."
+  mkdir -p "${wallah_node_root}"
+  cd "${wallah_node_root}"
 
-  local archive="node-v${version}-${platform}-${cpu}.tar.gz"
-  local cache_dir="${HOME}/.wallah/cache"
-  local cached_archive="${cache_dir}/${archive}"
+  local archive="node-v${wallah_node_version}-${wallah_node_platform}-${wallah_node_cpu}.tar.gz"
 
-  if [[ ! -f "${cached_archive}" ]]; then
-    mkdir -p "${cache_dir}"
-    curl --silent --output "${cached_archive}" \
-      "http://nodejs.org/dist/v${version}/${archive}"
-  fi
+  local cached_archive=$(wallah::download \
+    "http://nodejs.org/dist/v${wallah_node_version}/${archive}" "${archive}")
   tar --strip-components=1 --extract --gzip --file "${cached_archive}"
 }
 
