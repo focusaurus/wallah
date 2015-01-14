@@ -1,0 +1,68 @@
+#!/bin/bash
+#
+# Usage is `./wallah/bin/install_iojs [target_directory] [version] [cpu]`
+#
+# If target directory is not provided, it will default to a directory called
+# "node" in the current directory.
+#
+# The version installed is determined with this chain of fallbacks/default:
+# * the version provided on the command line
+# * the version found in node_root/../package.json in the 'engines.node' key
+# * the latest version scraped from the http://iojs.org home page HTML :-)
+# * a hard-coded fallback to a recent version I try to keep up to date
+#   on a best-effort basis
+#
+# If cpu is omitted wallah will install the version appropriate for the
+# current platform. However, by providing a wallah_node_cpu value (linux, darwin, sunos),
+# you can instruct wallah to install for a different cpu.
+#
+# Downloads will be cached in $HOME/.wallah/cache
+
+readonly DEFAULT_IOJS_VERSION="1.0.1"
+
+
+get_latest_iojs_version() {
+  # Awesomely fragile way to figure out the latest version of iojs.
+  # scrape the <p>Current Version: v0.10.24</p> HTML from the home page
+  curl --silent 'https://iojs.org/' \
+    | grep "Version " \
+    | cut -d '>' -f 2 \
+    | wallah::num_dot
+}
+
+main() {
+  #sigh. http://mywiki.wooledge.org/BashFAQ/028
+  wallah_bin=$(cd $(dirname "$0") && pwd)
+  source "${wallah_bin}/../wallah.sh"
+  wallah::parse_node_args "$@"
+  if [[ -z "${wallah_node_version}" ]]; then
+    wallah_node_version="$(get_latest_iojs_version)"
+  fi
+  if [[ -z "${wallah_node_version}" ]]; then
+    wallah_node_version="${DEFAULT_IOJS_VERSION}"
+  fi
+
+  #Short circuit ASAP and bail if no work to do
+  if [[ -x "${wallah_node_root}/bin/node" ]]; then
+    #all good
+    exit 0
+  fi
+
+  #OK, we need to actually install node
+  if ! "${wallah_bin}/check_prerequisites" curl tar; then
+    exit 2
+  fi
+
+  echo -n "io.js not installed in directory ${wallah_node_root}, "
+  echo "installing v${wallah_node_version}..."
+  mkdir -p "${wallah_node_root}"
+  cd "${wallah_node_root}"
+
+  local archive="iojs-v${wallah_node_version}-${wallah_node_platform}-${wallah_node_cpu}.tar.gz"
+  local cached_archive=$(wallah::download \
+    "https://iojs.org/dist/v${wallah_node_version}/${archive}" "${archive}")
+  set -x
+  tar --strip-components=1 --extract --gzip --file "${cached_archive}"
+}
+
+main "$@"
